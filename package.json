@@ -1,6 +1,6 @@
 {
   "name": "blaise-iap-node-provider",
-  "version": "1.0.0",
+  "version": "2.0.2_4894",
   "module": "lib/esm/blaise-iap-node-provider.js",
   "main": "lib/cjs/blaise-iap-node-provider.js",
   "types": "lib/esm/blaise-iap-node-provider.d.ts",
