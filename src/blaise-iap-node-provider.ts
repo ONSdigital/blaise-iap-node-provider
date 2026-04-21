@@ -1,40 +1,55 @@
+import type { JwtPayload } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
-import getGoogleAuthToken from "./authentication/google-token-provider";
+import getGoogleAuthToken from "./google-token-provider";
 
 export default class BlaiseIapNodeProvider {
-    private readonly CLIENT_ID: string;
-    private token: string;
+  private token = "";
+  private expirationTimestamp = 0;
+  private fetchTokenPromise: Promise<string> | null = null;
 
-    constructor(CLIENT_ID: string) {
-        this.CLIENT_ID = CLIENT_ID;
-        this.token = "";
+  constructor(private readonly CLIENT_ID: string) {}
+
+  async getAuthHeader(): Promise<{ Authorization: string }> {
+    if (!this.isValidToken()) {
+      await this.refreshToken();
     }
 
-    async getAuthHeader(): Promise<{ Authorization: string }> {
-        if (!this.isValidToken()) {
-            this.token = await getGoogleAuthToken(this.CLIENT_ID);
-        }
-        return {Authorization: `Bearer ${this.token}`};
+    return { Authorization: `Bearer ${this.token}` };
+  }
+
+  private async refreshToken(): Promise<void> {
+    if (!this.fetchTokenPromise) {
+      this.fetchTokenPromise = getGoogleAuthToken(this.CLIENT_ID)
+        .then((newToken) => {
+          this.token = newToken;
+
+          const decodedToken = jwt.decode(newToken, { json: true }) as JwtPayload | null;
+
+          this.expirationTimestamp = decodedToken?.exp || 0;
+
+          return newToken;
+        })
+        .catch((error) => {
+          this.token = "";
+          this.expirationTimestamp = 0;
+          throw error;
+        })
+        .finally(() => {
+          this.fetchTokenPromise = null;
+        });
     }
 
-    private isValidToken(): boolean {
-        if (this.token === "") {
-            return false;
-        }
-        const decodedToken = jwt.decode(this.token, {json: true});
-        if (decodedToken === null) {
-            console.log("Failed to decode token, Calling for new Google auth Token");
-            return false;
-        } else if (BlaiseIapNodeProvider.hasTokenExpired(decodedToken["exp"] || 0)) {
-            console.log("Auth Token Expired, Calling for new Google auth Token");
+    await this.fetchTokenPromise;
+  }
 
-            return false;
-        }
-
-        return true;
+  private isValidToken(): boolean {
+    if (this.token === "") {
+      return false;
     }
 
-    private static hasTokenExpired(expireTimestamp: number): boolean {
-        return expireTimestamp < Math.floor(new Date().getTime() / 1000);
-    }
+    const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+    const bufferInSeconds = 30;
+
+    return this.expirationTimestamp > currentTimeInSeconds + bufferInSeconds;
+  }
 }

@@ -1,40 +1,48 @@
 {
-  "name": "blaise-iap-node-provider",
-  "version": "1.0.0",
-  "module": "lib/esm/blaise-iap-node-provider.js",
-  "main": "lib/cjs/blaise-iap-node-provider.js",
-  "types": "lib/esm/blaise-iap-node-provider.d.ts",
-  "license": "MIT",
-  "scripts": {
-    "build": "yarn build:esm && yarn build:cjs",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "test": "jest --coverage --watchAll=false"
-  },
-  "dependencies": {
-    "@babel/preset-env": "^7.26.9",
-    "@types/jsonwebtoken": "^8.5.5",
-    "axios": "^1.13.2",
-    "google-auth-library": "^10.5.0",
-    "jsonwebtoken": "^9.0.3",
-    "path-parse": "^1.0.7"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.26.9",
-    "@babel/preset-typescript": "^7.26.0",
-    "@types/jest": "^30.0.0",
-    "axios-mock-adapter": "^1.21.5",
-    "babel-jest": "^30.2.0",
-    "eslint": "^9.39.1",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^4.9.5"
-  },
-  "resolutions": {
-    "@babel/traverse": "^7.23.2"
-  },
-  "files": [
-    "/lib",
-    "/mocks"
-  ]
+    "name": "blaise-iap-node-provider",
+    "version": "1.0.0",
+    "license": "MIT",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "type": "module",
+    "types": "dist/esm/blaise-iap-node-provider.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/esm/blaise-iap-node-provider.d.ts",
+            "import": "./dist/esm/blaise-iap-node-provider.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "test": "vitest run --coverage",
+        "test-watch": "vitest",
+        "lint": "eslint .",
+        "lint-fix": "eslint . --fix"
+    },
+    "dependencies": {
+        "google-auth-library": "^10.6.2",
+        "jsonwebtoken": "^9.0.3"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^25.6.0",
+        "@vitest/coverage-v8": "^4.1.4",
+        "eslint": "^10.2.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-import-resolver-typescript": "^4.4.4",
+        "eslint-plugin-import": "^2.32.0",
+        "eslint-plugin-prettier": "^5.5.5",
+        "globals": "^17.5.0",
+        "jiti": "^2.6.1",
+        "prettier": "^3.8.3",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.59.0",
+        "vitest": "^4.1.4"
+    }
 }
