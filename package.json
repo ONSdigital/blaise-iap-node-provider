@@ -26,6 +26,7 @@
         "lint-fix": "eslint . --fix"
     },
     "dependencies": {
+        "typescript": "^6.0.3",
         "google-auth-library": "^10.6.2",
         "jsonwebtoken": "^9.0.3"
     },
@@ -42,7 +43,6 @@
         "globals": "^17.5.0",
         "jiti": "^2.6.1",
         "prettier": "^3.8.3",
-        "typescript": "^6.0.3",
         "typescript-eslint": "^8.59.0",
         "vitest": "^4.1.4"
     }
