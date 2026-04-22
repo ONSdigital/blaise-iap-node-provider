@@ -18,6 +18,7 @@
     ],
     "sideEffects": false,
     "scripts": {
+        "prepare": "yarn build",
         "build": "tsc -p tsconfig.build.json",
         "test": "vitest run --coverage",
         "test-watch": "vitest",
