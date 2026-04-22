@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, afterEach } from "vitest";
-import BlaiseIapNodeProvider from "./blaise-iap-node-provider";
+import BlaiseIapNodeProvider from "./blaise-iap-node-provider.js";
 import jwt from "jsonwebtoken";
 
 vi.mock("./google-token-provider");
