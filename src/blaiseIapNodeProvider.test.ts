@@ -1,9 +1,9 @@
 import { vi, describe, it, expect, afterEach } from "vitest";
-import BlaiseIapNodeProvider from "./blaise-iap-node-provider.js";
+import BlaiseIapNodeProvider from "./blaiseIapNodeProvider.js";
 import jwt from "jsonwebtoken";
 
-vi.mock("./google-token-provider.js");
-import getGoogleAuthToken from "./google-token-provider.js";
+vi.mock("./googleTokenProvider.js");
+import getGoogleAuthToken from "./googleTokenProvider.js";
 
 const mockedGetGoogleAuthToken = vi.mocked(getGoogleAuthToken);
 
@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 describe("BlaiseIapNodeProvider", () => {
-  it("We can get back auth headers with a token", async () => {
+  it("returns auth headers with a valid token", async () => {
     const uniqueToken = "Tolkien";
 
     mockAuthToken(uniqueToken);
@@ -28,7 +28,7 @@ describe("BlaiseIapNodeProvider", () => {
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledWith("EXAMPLE_CLIENT_ID");
   });
 
-  it("We get a new token when a token has expired or is within the 30-second buffer", async () => {
+  it("fetches a new token when the current token has expired or is within the 30-second buffer", async () => {
     const olderMockToken = jwt.sign({ foo: "bar", exp: Math.floor(Date.now() / 1000) + 20 }, "shh");
 
     mockAuthToken(olderMockToken);
@@ -44,7 +44,7 @@ describe("BlaiseIapNodeProvider", () => {
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
   });
 
-  it("We receive the same token if it hasn't expired", async () => {
+  it("returns the cached token if it has not expired", async () => {
     const olderMockToken = jwt.sign(
       { foo: "bar", exp: Math.floor(Date.now() / 1000) + 60 * 60 },
       "shh",
@@ -63,7 +63,7 @@ describe("BlaiseIapNodeProvider", () => {
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(1);
   });
 
-  it("We get a new token when a token is invalid", async () => {
+  it("fetches a new token when the cached token is invalid", async () => {
     mockAuthToken("%%%%%");
     const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
 
@@ -74,6 +74,42 @@ describe("BlaiseIapNodeProvider", () => {
     const authHeader = await googleAuthProvider.getAuthHeader();
 
     expect(authHeader).toEqual({ Authorization: `Bearer ${updatedMockToken}` });
+    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
+  });
+
+  it("deduplicates concurrent token requests", async () => {
+    const uniqueToken = "ConcurrentToken";
+    
+    mockedGetGoogleAuthToken.mockImplementationOnce(
+      () => new Promise((resolve) => setTimeout(() => resolve(uniqueToken), 10))
+    );
+
+    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const [header1, header2] = await Promise.all([
+      googleAuthProvider.getAuthHeader(),
+      googleAuthProvider.getAuthHeader(),
+    ]);
+
+    expect(header1).toEqual({ Authorization: `Bearer ${uniqueToken}` });
+    expect(header2).toEqual({ Authorization: `Bearer ${uniqueToken}` });
+    
+    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws an error and recovers state when fetching the token fails", async () => {
+    const errorMessage = "Network failure";
+    
+    mockedGetGoogleAuthToken.mockRejectedValueOnce(new Error(errorMessage));
+    
+    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+
+    await expect(googleAuthProvider.getAuthHeader()).rejects.toThrow(errorMessage);
+
+    const recoveryToken = "RecoveryToken";
+    mockAuthToken(recoveryToken);
+    
+    const recoveryHeader = await googleAuthProvider.getAuthHeader();
+    expect(recoveryHeader).toEqual({ Authorization: `Bearer ${recoveryToken}` });
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
   });
 });

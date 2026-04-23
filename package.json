@@ -6,11 +6,11 @@
         "node": ">=24.0.0"
     },
     "type": "module",
-    "types": "dist/esm/blaise-iap-node-provider.d.ts",
+    "types": "dist/esm/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/esm/blaise-iap-node-provider.d.ts",
-            "import": "./dist/esm/blaise-iap-node-provider.js"
+            "types": "./dist/esm/index.d.ts",
+            "import": "./dist/esm/index.js"
         }
     },
     "files": [

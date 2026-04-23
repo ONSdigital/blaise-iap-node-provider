@@ -12,6 +12,6 @@ export default async function getGoogleAuthToken(targetAudience: string): Promis
 
     console.error("Could not get the Google auth token credentials:", errorMessage);
 
-    return "";
+    throw new Error(`Failed to fetch Google Auth Token: ${errorMessage}`);
   }
 }

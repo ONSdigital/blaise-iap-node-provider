@@ -1,6 +1,6 @@
 import type { JwtPayload } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
-import getGoogleAuthToken from "./google-token-provider.js";
+import getGoogleAuthToken from "./googleTokenProvider.js";
 
 export default class BlaiseIapNodeProvider {
   private token = "";
