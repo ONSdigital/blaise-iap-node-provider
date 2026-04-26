@@ -41,6 +41,7 @@ export default tseslint.config(
         { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
         { blankLine: "any", prev: ["const", "let", "var"], next: ["const", "let", "var"] },
         { blankLine: "always", prev: "*", next: ["class", "function", "export"] },
+        { blankLine: "always", prev: ["block-like", "multiline-block-like"], next: "*" },
       ],
       "prettier/prettier": [
         "error",
