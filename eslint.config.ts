@@ -65,7 +65,9 @@ export default tseslint.config(
       "no-unreachable": "error",
       "import/no-extraneous-dependencies": [
         "error",
-        { devDependencies: ["src/**/*.test.ts"] },
+        {
+          devDependencies: ["src/**/*.test.ts", "*.config.ts"],
+        },
       ],
     },
   },
