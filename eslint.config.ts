@@ -18,13 +18,13 @@ export default tseslint.config(
     },
     settings: {
       "import/resolver": {
-        typescript: { project: ["./tsconfig.json"] },
+        typescript: { project: "./tsconfig.eslint.json" },
       },
     },
   },
 
   {
-    files: ["src/**/*.ts"],
+    files: ["**/*.ts"],
     plugins: {
       import: pluginImport,
       prettier: pluginPrettier,
