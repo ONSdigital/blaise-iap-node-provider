@@ -1,49 +1,51 @@
 {
-    "name": "blaise-iap-node-provider",
-    "version": "1.0.0",
-    "license": "MIT",
-    "engines": {
-        "node": ">=24.0.0"
-    },
-    "type": "module",
-    "types": "dist/esm/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/esm/index.d.ts",
-            "import": "./dist/esm/index.js"
-        }
-    },
-    "files": [
-        "dist"
-    ],
-    "sideEffects": false,
-    "scripts": {
-        "prepare": "yarn build",
-        "build": "tsc -p tsconfig.build.json",
-        "test": "vitest run --coverage",
-        "test-watch": "vitest",
-        "lint": "eslint .",
-        "lint-fix": "eslint . --fix"
-    },
-    "dependencies": {
-        "typescript": "^6.0.3",
-        "@types/node": "^25.6.0",
-        "google-auth-library": "^10.6.2",
-        "jsonwebtoken": "^9.0.3"
-    },
-    "devDependencies": {
-        "@eslint/js": "^10.0.1",
-        "@types/jsonwebtoken": "^9.0.10",
-        "@vitest/coverage-v8": "^4.1.4",
-        "eslint": "^10.2.1",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-import-resolver-typescript": "^4.4.4",
-        "eslint-plugin-import": "^2.32.0",
-        "eslint-plugin-prettier": "^5.5.5",
-        "globals": "^17.5.0",
-        "jiti": "^2.6.1",
-        "prettier": "^3.8.3",
-        "typescript-eslint": "^8.59.0",
-        "vitest": "^4.1.4"
+  "name": "blaise-iap-node-provider",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "type": "module",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "prepare": "yarn build",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --coverage",
+    "test-watch": "vitest",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@types/node": "^25.6.0",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.3",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@vitest/coverage-v8": "^4.1.5",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.5.0",
+    "jiti": "^2.6.1",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.1",
+    "vitest": "^4.1.5"
+  },
+  "packageManager": "yarn@4.14.1"
 }

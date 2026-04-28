@@ -79,9 +79,9 @@ describe("BlaiseIapNodeProvider", () => {
 
   it("deduplicates concurrent token requests", async () => {
     const uniqueToken = "ConcurrentToken";
-    
+
     mockedGetGoogleAuthToken.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve(uniqueToken), 10))
+      () => new Promise((resolve) => setTimeout(() => resolve(uniqueToken), 10)),
     );
 
     const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
@@ -92,23 +92,25 @@ describe("BlaiseIapNodeProvider", () => {
 
     expect(header1).toEqual({ Authorization: `Bearer ${uniqueToken}` });
     expect(header2).toEqual({ Authorization: `Bearer ${uniqueToken}` });
-    
+
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(1);
   });
 
   it("throws an error and recovers state when fetching the token fails", async () => {
     const errorMessage = "Network failure";
-    
+
     mockedGetGoogleAuthToken.mockRejectedValueOnce(new Error(errorMessage));
-    
+
     const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
 
     await expect(googleAuthProvider.getAuthHeader()).rejects.toThrow(errorMessage);
 
     const recoveryToken = "RecoveryToken";
+
     mockAuthToken(recoveryToken);
-    
+
     const recoveryHeader = await googleAuthProvider.getAuthHeader();
+
     expect(recoveryHeader).toEqual({ Authorization: `Bearer ${recoveryToken}` });
     expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
   });
