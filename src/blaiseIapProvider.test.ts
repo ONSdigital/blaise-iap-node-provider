@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, afterEach } from "vitest";
-import BlaiseIapNodeProvider from "./blaiseIapNodeProvider.js";
+import BlaiseIapProvider from "./blaiseIapProvider.js";
 import jwt from "jsonwebtoken";
 
 vi.mock("./googleTokenProvider.js");
@@ -16,12 +16,12 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-describe("BlaiseIapNodeProvider", () => {
+describe("BlaiseIapProvider", () => {
   it("returns auth headers with a valid token", async () => {
     const uniqueToken = "Tolkien";
 
     mockAuthToken(uniqueToken);
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
     const authHeader = await googleAuthProvider.getAuthHeader();
 
     expect(authHeader).toEqual({ Authorization: `Bearer ${uniqueToken}` });
@@ -32,7 +32,7 @@ describe("BlaiseIapNodeProvider", () => {
     const olderMockToken = jwt.sign({ foo: "bar", exp: Math.floor(Date.now() / 1000) + 20 }, "shh");
 
     mockAuthToken(olderMockToken);
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
 
     await googleAuthProvider.getAuthHeader();
     const updatedMockToken = "MockSecondaryTokenCalled";
@@ -51,7 +51,7 @@ describe("BlaiseIapNodeProvider", () => {
     );
 
     mockAuthToken(olderMockToken);
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
 
     await googleAuthProvider.getAuthHeader();
     const updatedMockToken = "MockSecondaryTokenCalled";
@@ -65,7 +65,7 @@ describe("BlaiseIapNodeProvider", () => {
 
   it("fetches a new token when the cached token is invalid", async () => {
     mockAuthToken("%%%%%");
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
 
     await googleAuthProvider.getAuthHeader();
     const updatedMockToken = "MockSecondaryTokenCalled";
@@ -84,7 +84,7 @@ describe("BlaiseIapNodeProvider", () => {
       () => new Promise((resolve) => setTimeout(() => resolve(uniqueToken), 10)),
     );
 
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
     const [header1, header2] = await Promise.all([
       googleAuthProvider.getAuthHeader(),
       googleAuthProvider.getAuthHeader(),
@@ -101,7 +101,7 @@ describe("BlaiseIapNodeProvider", () => {
 
     mockedGetGoogleAuthToken.mockRejectedValueOnce(new Error(errorMessage));
 
-    const googleAuthProvider = new BlaiseIapNodeProvider("EXAMPLE_CLIENT_ID");
+    const googleAuthProvider = new BlaiseIapProvider("EXAMPLE_CLIENT_ID");
 
     await expect(googleAuthProvider.getAuthHeader()).rejects.toThrow(errorMessage);
 

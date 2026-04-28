@@ -19,12 +19,12 @@ Release versions can be found on this repo's [GitHub releases](https://github.co
 The provider requires the Client ID of the target IAP-secured service. It exposes a single `getAuthHeader()` method which returns an object that can be spread directly into the headers of modern HTTP clients (like Axios or Fetch).
 
 ```TypeScript
-import BlaiseIapNodeProvider from "blaise-iap-node-provider";
+import BlaiseIapProvider from "blaise-iap-node-provider";
 import axios from "axios";
 
 // Initialise the provider with the target service's IAP Client ID
 const TARGET_CLIENT_ID = process.env.TARGET_CLIENT_ID || "";
-const iapProvider = new BlaiseIapNodeProvider(TARGET_CLIENT_ID);
+const iapProvider = new BlaiseIapProvider(TARGET_CLIENT_ID);
 
 export async function fetchSecureData() {
   try {
