@@ -8,9 +8,6 @@ updates:
       day: monday
       time: '06:00'
       timezone: Europe/London
-    labels:
-      - dependencies
-      - javascript
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -18,6 +15,3 @@ updates:
       day: monday
       time: '06:00'
       timezone: Europe/London
-    labels:
-      - dependencies
-      - github-actions
