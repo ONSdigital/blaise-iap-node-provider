@@ -3,6 +3,5 @@
 .yarn/
 coverage/
 dist/
-docs-build/
 node_modules/
 *.log

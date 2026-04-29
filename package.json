@@ -20,7 +20,6 @@
   "sideEffects": false,
   "scripts": {
     "prepack": "yarn build",
-    "prepare": "yarn build",
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run --coverage",
     "test-watch": "vitest",
