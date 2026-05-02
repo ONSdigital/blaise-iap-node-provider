@@ -19,31 +19,36 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "prepack": "yarn build",
     "build": "tsc -p tsconfig.build.json",
+    "lint": "yarn typecheck && eslint . && prettier --check . && knip",
+    "lint-fix": "eslint . --fix && prettier --write . && knip --fix",
+    "prepack": "yarn build",
+    "spellcheck": "cspell \"**/*.{ts,tsx,json,jsonc,yml,yaml,md}\" --no-progress --no-summary",
     "test": "vitest run --coverage",
     "test-watch": "vitest",
-    "lint": "eslint .",
-    "lint-fix": "eslint . --fix"
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.build.json --noEmit"
   },
   "dependencies": {
-    "@types/node": "^25.6.0",
     "google-auth-library": "^10.6.2",
-    "jsonwebtoken": "^9.0.3",
-    "typescript": "^6.0.3"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.5",
-    "eslint": "^10.2.1",
+    "cspell": "^10.0.0",
+    "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.5",
-    "globals": "^17.5.0",
+    "eslint-plugin-jsonc": "^3.1.2",
+    "globals": "^17.6.0",
     "jiti": "^2.6.1",
+    "jsonc-eslint-parser": "^3.1.0",
+    "knip": "^6.11.0",
     "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.1",
     "vitest": "^4.1.5"
   },

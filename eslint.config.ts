@@ -2,8 +2,9 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginImport from "eslint-plugin-import";
-import pluginPrettier from "eslint-plugin-prettier";
 import configPrettier from "eslint-config-prettier";
+import pluginJsonc from "eslint-plugin-jsonc";
+import * as jsoncParser from "jsonc-eslint-parser";
 
 export default tseslint.config(
   { ignores: ["coverage/**", "dist/**", "node_modules/**"] },
@@ -27,12 +28,8 @@ export default tseslint.config(
     files: ["**/*.ts"],
     plugins: {
       import: pluginImport,
-      prettier: pluginPrettier,
     },
     rules: {
-      "no-trailing-spaces": "error",
-      "eol-last": ["error", "always"],
-      "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 0, maxBOF: 0 }],
       "padding-line-between-statements": [
         "error",
         { blankLine: "always", prev: "*", next: "return" },
@@ -43,21 +40,6 @@ export default tseslint.config(
         { blankLine: "always", prev: "*", next: ["class", "function", "export"] },
         { blankLine: "always", prev: ["block-like", "multiline-block-like"], next: "*" },
       ],
-      "prettier/prettier": [
-        "error",
-        {
-          singleQuote: false,
-          semi: true,
-          tabWidth: 2,
-          useTabs: false,
-          trailingComma: "all",
-          printWidth: 100,
-          bracketSpacing: true,
-          arrowParens: "always",
-          singleAttributePerLine: true,
-          endOfLine: "lf",
-        },
-      ],
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "no-unused-vars": "off",
@@ -67,6 +49,52 @@ export default tseslint.config(
         "error",
         {
           devDependencies: ["src/**/*.test.ts", "*.config.ts"],
+        },
+      ],
+    },
+  },
+
+  ...pluginJsonc.configs["flat/recommended-with-jsonc"],
+  {
+    files: ["**/*.json", "**/*.jsonc"],
+    languageOptions: {
+      parser: jsoncParser,
+    },
+    rules: {
+      "jsonc/sort-keys": ["error", { pathPattern: "^$", order: { type: "asc" } }],
+    },
+  },
+  {
+    files: ["package.json"],
+    rules: {
+      "jsonc/sort-keys": [
+        "error",
+        {
+          pathPattern: "^$",
+          order: [
+            "name",
+            "version",
+            "private",
+            "description",
+            "author",
+            "license",
+            "engines",
+            "type",
+            "types",
+            "main",
+            "exports",
+            "files",
+            "sideEffects",
+            "scripts",
+            "peerDependencies",
+            "dependencies",
+            "devDependencies",
+            "packageManager",
+          ],
+        },
+        {
+          pathPattern: "^(?:dev|peer|optional|bundled)?[Dd]ependencies$|^scripts$|^exports$",
+          order: { type: "asc" },
         },
       ],
     },

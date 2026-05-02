@@ -45,6 +45,7 @@ export async function fetchSecureData() {
   }
 }
 ```
+
 ### Authentication Context
 
 This provider relies on google-auth-library. For the token generation to succeed, the environment running this code must have valid Google Cloud credentials (e.g., running on a GCP compute instance with an attached service account, or utilising a local GOOGLE_APPLICATION_CREDENTIALS JSON keyfile during development).
