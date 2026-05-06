@@ -1,8 +1,10 @@
-import type { JwtPayload } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
-import getGoogleAuthToken from "./googleTokenProvider.js";
 
-export default class BlaiseIapProvider {
+import { getGoogleAuthToken } from "./googleTokenProvider.js";
+
+import type { JwtPayload } from "jsonwebtoken";
+
+export class IapProvider {
   private token = "";
   private expirationTimestamp = 0;
   private fetchTokenPromise: Promise<string> | null = null;

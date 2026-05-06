@@ -1,1 +1,1 @@
-export { default as BlaiseIapProvider } from "./blaiseIapProvider.js";
+export { IapProvider } from "./iapProvider.js";

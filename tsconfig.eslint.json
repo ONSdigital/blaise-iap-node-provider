@@ -3,5 +3,5 @@
     "noEmit": true
   },
   "extends": "./tsconfig.json",
-  "include": ["src", "eslint.config.ts", "vite.config.ts"]
+  "include": ["src", "*.config.ts"]
 }

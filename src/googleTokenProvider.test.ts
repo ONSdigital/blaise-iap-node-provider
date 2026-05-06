@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockFetchIdToken, mockGetIdTokenClient } = vi.hoisted(() => {
   return {
@@ -15,7 +15,7 @@ vi.mock("google-auth-library", () => {
   };
 });
 
-import getGoogleAuthToken from "./googleTokenProvider.js";
+import { getGoogleAuthToken } from "./googleTokenProvider.js";
 
 describe("googleTokenProvider", () => {
   beforeEach(() => {

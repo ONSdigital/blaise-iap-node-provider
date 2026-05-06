@@ -2,7 +2,7 @@ import { GoogleAuth } from "google-auth-library";
 
 const auth = new GoogleAuth();
 
-export default async function getGoogleAuthToken(targetAudience: string): Promise<string> {
+export async function getGoogleAuthToken(targetAudience: string): Promise<string> {
   try {
     const client = await auth.getIdTokenClient(targetAudience);
 

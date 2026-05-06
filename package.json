@@ -3,30 +3,35 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ONSdigital/blaise-iap-node-provider"
+  },
   "engines": {
     "node": ">=24.0.0"
   },
   "type": "module",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "lint": "yarn typecheck && eslint . && prettier --check . && knip",
-    "lint-fix": "eslint . --fix && prettier --write . && knip --fix",
+    "build": "yarn tsc -p tsconfig.build.json && yarn publint --pack npm",
+    "lint": "yarn typecheck && yarn eslint . && yarn prettier --check . && yarn knip",
+    "lint-fix": "yarn eslint . --fix && yarn prettier --write . && yarn knip --fix",
     "prepack": "yarn build",
-    "spellcheck": "cspell \"**/*.{ts,tsx,json,jsonc,yml,yaml,md}\" --no-progress --no-summary",
-    "test": "vitest run --coverage",
-    "test-watch": "vitest",
-    "typecheck": "tsc --noEmit && tsc --project tsconfig.build.json --noEmit"
+    "spellcheck": "yarn cspell \"**/*.{ts,tsx,json,jsonc,yml,yaml,md}\" --no-progress --no-summary",
+    "test": "yarn vitest run --coverage",
+    "test-watch": "yarn vitest",
+    "typecheck": "yarn tsc --noEmit && yarn tsc --project tsconfig.build.json --noEmit"
   },
   "dependencies": {
     "google-auth-library": "^10.6.2",
@@ -41,15 +46,16 @@
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-jsonc": "^3.1.2",
     "globals": "^17.6.0",
-    "jiti": "^2.6.1",
+    "jiti": "^2.7.0",
     "jsonc-eslint-parser": "^3.1.0",
-    "knip": "^6.11.0",
+    "knip": "^6.12.0",
     "prettier": "^3.8.3",
+    "publint": "^0.3.19",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.1",
+    "typescript-eslint": "^8.59.2",
     "vitest": "^4.1.5"
   },
   "packageManager": "yarn@4.14.1"

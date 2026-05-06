@@ -1,13 +1,15 @@
 import js from "@eslint/js";
-import globals from "globals";
-import tseslint from "typescript-eslint";
-import pluginImport from "eslint-plugin-import";
 import configPrettier from "eslint-config-prettier";
+import pluginImportX from "eslint-plugin-import-x";
 import pluginJsonc from "eslint-plugin-jsonc";
+import globals from "globals";
 import * as jsoncParser from "jsonc-eslint-parser";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["coverage/**", "dist/**", "node_modules/**"] },
+  {
+    ignores: ["coverage/**", "dist/**", "node_modules/**"],
+  },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -18,7 +20,7 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
     settings: {
-      "import/resolver": {
+      "import-x/resolver": {
         typescript: { project: "./tsconfig.eslint.json" },
       },
     },
@@ -27,7 +29,7 @@ export default tseslint.config(
   {
     files: ["**/*.ts"],
     plugins: {
-      import: pluginImport,
+      "import-x": pluginImportX,
     },
     rules: {
       "padding-line-between-statements": [
@@ -42,28 +44,81 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          prefer: "type-imports",
+          fixStyle: "inline-type-imports",
+        },
+      ],
+      "sort-imports": [
+        "error",
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+          ignoreMemberSort: false,
+        },
+      ],
+      "import-x/order": [
+        "error",
+        {
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+            "object",
+            "type",
+          ],
+          "newlines-between": "always",
+          alphabetize: { order: "asc", caseInsensitive: true },
+        },
+      ],
       "no-unused-vars": "off",
       "no-constant-condition": "error",
       "no-unreachable": "error",
-      "import/no-extraneous-dependencies": [
+      "import-x/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          js: "always",
+          jsx: "never",
+          ts: "never",
+          tsx: "never",
+        },
+      ],
+      "import-x/no-extraneous-dependencies": [
         "error",
         {
-          devDependencies: ["src/**/*.test.ts", "*.config.ts"],
+          devDependencies: [
+            "src/**/*.mock.ts",
+            "src/**/*.test.ts",
+            "src/setupTests.ts",
+            "*.config.ts",
+          ],
         },
       ],
     },
   },
 
   ...pluginJsonc.configs["flat/recommended-with-jsonc"],
+
   {
     files: ["**/*.json", "**/*.jsonc"],
     languageOptions: {
       parser: jsoncParser,
     },
     rules: {
-      "jsonc/sort-keys": ["error", { pathPattern: "^$", order: { type: "asc" } }],
+      "jsonc/sort-keys": [
+        "error",
+        { pathPattern: "^$", order: { type: "asc" } },
+        { pathPattern: "^compilerOptions$", order: { type: "asc" } },
+      ],
     },
   },
+
   {
     files: ["package.json"],
     rules: {
@@ -78,10 +133,10 @@ export default tseslint.config(
             "description",
             "author",
             "license",
+            "repository",
             "engines",
             "type",
             "types",
-            "main",
             "exports",
             "files",
             "sideEffects",
@@ -93,7 +148,7 @@ export default tseslint.config(
           ],
         },
         {
-          pathPattern: "^(?:dev|peer|optional|bundled)?[Dd]ependencies$|^scripts$|^exports$",
+          pathPattern: "^(?:dev|peer|optional|bundled)?[Dd]ependencies$|^scripts$",
           order: { type: "asc" },
         },
       ],
