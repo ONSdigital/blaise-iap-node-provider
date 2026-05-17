@@ -1,40 +1,62 @@
 {
   "name": "blaise-iap-node-provider",
   "version": "1.0.0",
-  "module": "lib/esm/blaise-iap-node-provider.js",
-  "main": "lib/cjs/blaise-iap-node-provider.js",
-  "types": "lib/esm/blaise-iap-node-provider.d.ts",
+  "private": true,
   "license": "MIT",
-  "scripts": {
-    "build": "yarn build:esm && yarn build:cjs",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "test": "jest --coverage --watchAll=false"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ONSdigital/blaise-iap-node-provider.git"
   },
-  "dependencies": {
-    "@babel/preset-env": "^7.26.9",
-    "@types/jsonwebtoken": "^8.5.5",
-    "axios": "^1.13.2",
-    "google-auth-library": "^10.5.0",
-    "jsonwebtoken": "^9.0.3",
-    "path-parse": "^1.0.7"
+  "engines": {
+    "node": ">=24.0.0"
   },
-  "devDependencies": {
-    "@babel/core": "^7.26.9",
-    "@babel/preset-typescript": "^7.26.0",
-    "@types/jest": "^30.0.0",
-    "axios-mock-adapter": "^1.21.5",
-    "babel-jest": "^30.2.0",
-    "eslint": "^9.39.1",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^4.9.5"
-  },
-  "resolutions": {
-    "@babel/traverse": "^7.23.2"
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "/lib",
-    "/mocks"
-  ]
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "yarn tsc -p tsconfig.build.json && yarn publint --pack npm",
+    "lint": "yarn typecheck && yarn eslint . && yarn prettier --check . && yarn knip",
+    "lint-fix": "yarn eslint . --fix && yarn prettier --write . && yarn knip --fix",
+    "prepack": "yarn build",
+    "spellcheck": "yarn cspell \"**/*.{ts,tsx,json,jsonc,yml,yaml,md}\" --no-progress --no-summary",
+    "test": "yarn vitest run --coverage",
+    "test-watch": "yarn vitest",
+    "typecheck": "yarn tsc --noEmit && yarn tsc --project tsconfig.build.json --noEmit"
+  },
+  "dependencies": {
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.8.0",
+    "@vitest/coverage-v8": "^4.1.6",
+    "cspell": "^10.0.0",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-jsonc": "^3.1.2",
+    "globals": "^17.6.0",
+    "jiti": "^2.7.0",
+    "jsonc-eslint-parser": "^3.1.0",
+    "knip": "^6.14.1",
+    "prettier": "^3.8.3",
+    "publint": "^0.3.21",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3",
+    "vitest": "^4.1.6"
+  },
+  "packageManager": "yarn@4.14.1"
 }

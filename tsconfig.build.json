@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "exclude": ["src/**/*.mock.ts", "src/**/*.test.ts", "src/**/*.types.ts"],
+  "extends": "./tsconfig.json"
+}
