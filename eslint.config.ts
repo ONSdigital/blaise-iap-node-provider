@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import configPrettier from "eslint-config-prettier";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import pluginImportX from "eslint-plugin-import-x";
 import pluginJsonc from "eslint-plugin-jsonc";
 import globals from "globals";
@@ -20,9 +21,9 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
     settings: {
-      "import-x/resolver": {
-        typescript: { project: "./tsconfig.eslint.json" },
-      },
+      "import-x/resolver-next": [
+        createTypeScriptImportResolver({ project: "./tsconfig.eslint.json" }),
+      ],
     },
   },
 
