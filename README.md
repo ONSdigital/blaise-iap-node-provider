@@ -23,8 +23,13 @@ import { IapProvider } from "blaise-iap-node-provider";
 import axios from "axios";
 
 // Initialise the provider with the target service's IAP Client ID
-const TARGET_CLIENT_ID = process.env.TARGET_CLIENT_ID || "";
-const iapProvider = new IapProvider(TARGET_CLIENT_ID);
+const targetClientId = process.env.TARGET_CLIENT_ID;
+
+if (!targetClientId) {
+  throw new Error("TARGET_CLIENT_ID is required");
+}
+
+const iapProvider = new IapProvider(targetClientId);
 
 export async function fetchSecureData() {
   try {

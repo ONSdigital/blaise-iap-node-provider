@@ -1,118 +1,152 @@
-import jwt from "jsonwebtoken";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { getGoogleAuthToken } from "./googleTokenProvider.js";
 import { IapProvider } from "./iapProvider.js";
 
-vi.mock("./googleTokenProvider.js");
+function createTokenWithExpiration(expiresInSeconds: number): string {
+  const encodedHeader = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" }), "utf8").toString(
+    "base64url",
+  );
+  const encodedPayload = Buffer.from(
+    JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expiresInSeconds }),
+    "utf8",
+  ).toString("base64url");
 
-const mockedGetGoogleAuthToken = vi.mocked(getGoogleAuthToken);
-
-function mockAuthToken(token: string) {
-  mockedGetGoogleAuthToken.mockResolvedValueOnce(token);
+  return `${encodedHeader}.${encodedPayload}.`;
 }
 
-afterEach(() => {
-  vi.clearAllMocks();
-  vi.resetAllMocks();
-});
+function createTokenWithPayload(payload: unknown): string {
+  const encodedHeader = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" }), "utf8").toString(
+    "base64url",
+  );
+  const encodedPayload = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+
+  return `${encodedHeader}.${encodedPayload}.`;
+}
 
 describe("IapProvider", () => {
+  it("rejects an empty target audience", () => {
+    expect(() => new IapProvider("   ")).toThrow("IAP target audience is required.");
+  });
+
   it("returns auth headers with a valid token", async () => {
-    const uniqueToken = "Tolkien";
+    const validToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi.fn().mockResolvedValueOnce(validToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
+    const authHeader = await iapProvider.getAuthHeader();
 
-    mockAuthToken(uniqueToken);
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
-    const authHeader = await googleAuthProvider.getAuthHeader();
-
-    expect(authHeader).toEqual({ Authorization: `Bearer ${uniqueToken}` });
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledWith("EXAMPLE_CLIENT_ID");
+    expect(authHeader).toEqual({ Authorization: `Bearer ${validToken}` });
+    expect(fetchToken).toHaveBeenCalledWith("EXAMPLE_CLIENT_ID");
   });
 
   it("fetches a new token when the current token has expired or is within the 30-second buffer", async () => {
-    const olderMockToken = jwt.sign({ foo: "bar", exp: Math.floor(Date.now() / 1000) + 20 }, "shh");
+    const expiringToken = createTokenWithExpiration(20);
+    const refreshedToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi
+      .fn()
+      .mockResolvedValueOnce(expiringToken)
+      .mockResolvedValueOnce(refreshedToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
 
-    mockAuthToken(olderMockToken);
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
+    await iapProvider.getAuthHeader();
+    const authHeader = await iapProvider.getAuthHeader();
 
-    await googleAuthProvider.getAuthHeader();
-    const updatedMockToken = "MockSecondaryTokenCalled";
-
-    mockAuthToken(updatedMockToken);
-    const authHeader = await googleAuthProvider.getAuthHeader();
-
-    expect(authHeader).toEqual({ Authorization: `Bearer ${updatedMockToken}` });
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
+    expect(authHeader).toEqual({ Authorization: `Bearer ${refreshedToken}` });
+    expect(fetchToken).toHaveBeenCalledTimes(2);
   });
 
   it("returns the cached token if it has not expired", async () => {
-    const olderMockToken = jwt.sign(
-      { foo: "bar", exp: Math.floor(Date.now() / 1000) + 60 * 60 },
-      "shh",
-    );
+    const cachedToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi.fn().mockResolvedValue(cachedToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
 
-    mockAuthToken(olderMockToken);
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
+    await iapProvider.getAuthHeader();
+    const authHeader = await iapProvider.getAuthHeader();
 
-    await googleAuthProvider.getAuthHeader();
-    const updatedMockToken = "MockSecondaryTokenCalled";
-
-    mockAuthToken(updatedMockToken);
-    const authHeader = await googleAuthProvider.getAuthHeader();
-
-    expect(authHeader).toEqual({ Authorization: `Bearer ${olderMockToken}` });
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(1);
+    expect(authHeader).toEqual({ Authorization: `Bearer ${cachedToken}` });
+    expect(fetchToken).toHaveBeenCalledTimes(1);
   });
 
-  it("fetches a new token when the cached token is invalid", async () => {
-    mockAuthToken("%%%%%");
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
+  it("rejects a token whose payload is not a JSON object", async () => {
+    const fetchToken = vi.fn().mockResolvedValueOnce(createTokenWithPayload(null));
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
 
-    await googleAuthProvider.getAuthHeader();
-    const updatedMockToken = "MockSecondaryTokenCalled";
+    await expect(iapProvider.getAuthHeader()).rejects.toThrow(
+      "Failed to read Google ID token expiration.",
+    );
+  });
 
-    mockAuthToken(updatedMockToken);
-    const authHeader = await googleAuthProvider.getAuthHeader();
+  it("rejects a token with a non-numeric exp claim", async () => {
+    const fetchToken = vi
+      .fn()
+      .mockResolvedValueOnce(createTokenWithPayload({ exp: "not-a-number" }));
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
 
-    expect(authHeader).toEqual({ Authorization: `Bearer ${updatedMockToken}` });
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
+    await expect(iapProvider.getAuthHeader()).rejects.toThrow(
+      "Failed to read Google ID token expiration.",
+    );
+  });
+
+  it("rejects a token with an unparseable payload", async () => {
+    const encodedHeader = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" }), "utf8").toString(
+      "base64url",
+    );
+    const encodedPayload = Buffer.from("{not valid json}", "utf8").toString("base64url");
+    const invalidToken = `${encodedHeader}.${encodedPayload}.`;
+    const fetchToken = vi.fn().mockResolvedValueOnce(invalidToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
+
+    await expect(iapProvider.getAuthHeader()).rejects.toThrow(
+      "Failed to read Google ID token expiration.",
+    );
+  });
+
+  it("rejects malformed tokens and recovers on the next request", async () => {
+    const recoveredToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi.fn().mockResolvedValueOnce("%%%%%").mockResolvedValueOnce(recoveredToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
+
+    await expect(iapProvider.getAuthHeader()).rejects.toThrow(
+      "Failed to read Google ID token expiration.",
+    );
+
+    const authHeader = await iapProvider.getAuthHeader();
+
+    expect(authHeader).toEqual({ Authorization: `Bearer ${recoveredToken}` });
+    expect(fetchToken).toHaveBeenCalledTimes(2);
   });
 
   it("deduplicates concurrent token requests", async () => {
-    const uniqueToken = "ConcurrentToken";
-
-    mockedGetGoogleAuthToken.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve(uniqueToken), 10)),
-    );
-
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
+    const validToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi
+      .fn()
+      .mockImplementationOnce(
+        () => new Promise((resolve) => setTimeout(() => resolve(validToken), 10)),
+      );
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
     const [header1, header2] = await Promise.all([
-      googleAuthProvider.getAuthHeader(),
-      googleAuthProvider.getAuthHeader(),
+      iapProvider.getAuthHeader(),
+      iapProvider.getAuthHeader(),
     ]);
 
-    expect(header1).toEqual({ Authorization: `Bearer ${uniqueToken}` });
-    expect(header2).toEqual({ Authorization: `Bearer ${uniqueToken}` });
-
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(1);
+    expect(header1).toEqual({ Authorization: `Bearer ${validToken}` });
+    expect(header2).toEqual({ Authorization: `Bearer ${validToken}` });
+    expect(fetchToken).toHaveBeenCalledTimes(1);
   });
 
   it("throws an error and recovers state when fetching the token fails", async () => {
     const errorMessage = "Network failure";
+    const recoveryToken = createTokenWithExpiration(60 * 60);
+    const fetchToken = vi
+      .fn()
+      .mockRejectedValueOnce(new Error(errorMessage))
+      .mockResolvedValueOnce(recoveryToken);
+    const iapProvider = new IapProvider("EXAMPLE_CLIENT_ID", fetchToken);
 
-    mockedGetGoogleAuthToken.mockRejectedValueOnce(new Error(errorMessage));
+    await expect(iapProvider.getAuthHeader()).rejects.toThrow(errorMessage);
 
-    const googleAuthProvider = new IapProvider("EXAMPLE_CLIENT_ID");
-
-    await expect(googleAuthProvider.getAuthHeader()).rejects.toThrow(errorMessage);
-
-    const recoveryToken = "RecoveryToken";
-
-    mockAuthToken(recoveryToken);
-
-    const recoveryHeader = await googleAuthProvider.getAuthHeader();
+    const recoveryHeader = await iapProvider.getAuthHeader();
 
     expect(recoveryHeader).toEqual({ Authorization: `Bearer ${recoveryToken}` });
-    expect(mockedGetGoogleAuthToken).toHaveBeenCalledTimes(2);
+    expect(fetchToken).toHaveBeenCalledTimes(2);
   });
 });

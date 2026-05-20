@@ -13,9 +13,9 @@
     "sourceMap": true,
     "strict": true,
     "target": "ES2022",
-    "types": ["vitest/globals", "node"],
+    "types": ["node"],
     "verbatimModuleSyntax": true
   },
-  "exclude": ["coverage", "dist", "node_modules"],
+  "exclude": ["coverage", "dist", "node_modules", "src/**/*.test.ts"],
   "include": ["src"]
 }

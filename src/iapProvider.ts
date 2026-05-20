@@ -1,18 +1,55 @@
-import jwt from "jsonwebtoken";
+import { fetchGoogleIdToken } from "./googleTokenProvider.js";
 
-import { getGoogleAuthToken } from "./googleTokenProvider.js";
+const TOKEN_EXPIRATION_BUFFER_SECONDS = 30;
 
-import type { JwtPayload } from "jsonwebtoken";
+type AuthHeader = {
+  Authorization: string;
+};
+
+function readTokenExpirationTimestamp(token: string): number | null {
+  const [, payloadSegment] = token.split(".");
+
+  if (!payloadSegment) {
+    return null;
+  }
+
+  try {
+    const parsedPayload: unknown = JSON.parse(
+      Buffer.from(payloadSegment, "base64url").toString("utf8"),
+    );
+
+    if (typeof parsedPayload !== "object" || parsedPayload === null) {
+      return null;
+    }
+
+    const { exp: expirationTimestamp } = parsedPayload as Record<string, unknown>;
+
+    if (typeof expirationTimestamp !== "number" || !Number.isFinite(expirationTimestamp)) {
+      return null;
+    }
+
+    return expirationTimestamp;
+  } catch {
+    return null;
+  }
+}
 
 export class IapProvider {
   private token = "";
   private expirationTimestamp = 0;
-  private fetchTokenPromise: Promise<string> | null = null;
+  private inFlightTokenRefresh: Promise<void> | null = null;
 
-  constructor(private readonly CLIENT_ID: string) {}
+  constructor(
+    private readonly targetAudience: string,
+    private readonly fetchToken = fetchGoogleIdToken,
+  ) {
+    if (targetAudience.trim() === "") {
+      throw new Error("IAP target audience is required.");
+    }
+  }
 
-  async getAuthHeader(): Promise<{ Authorization: string }> {
-    if (!this.isValidToken()) {
+  async getAuthHeader(): Promise<AuthHeader> {
+    if (!this.hasUsableCachedToken()) {
       await this.refreshToken();
     }
 
@@ -20,38 +57,40 @@ export class IapProvider {
   }
 
   private async refreshToken(): Promise<void> {
-    if (!this.fetchTokenPromise) {
-      this.fetchTokenPromise = getGoogleAuthToken(this.CLIENT_ID)
-        .then((newToken) => {
-          this.token = newToken;
-
-          const decodedToken = jwt.decode(newToken, { json: true }) as JwtPayload | null;
-
-          this.expirationTimestamp = decodedToken?.exp || 0;
-
-          return newToken;
-        })
-        .catch((error) => {
-          this.token = "";
-          this.expirationTimestamp = 0;
-          throw error;
-        })
-        .finally(() => {
-          this.fetchTokenPromise = null;
-        });
+    if (!this.inFlightTokenRefresh) {
+      this.inFlightTokenRefresh = this.fetchAndCacheToken().finally(() => {
+        this.inFlightTokenRefresh = null;
+      });
     }
 
-    await this.fetchTokenPromise;
+    await this.inFlightTokenRefresh;
   }
 
-  private isValidToken(): boolean {
+  private async fetchAndCacheToken(): Promise<void> {
+    try {
+      const token = await this.fetchToken(this.targetAudience);
+      const expirationTimestamp = readTokenExpirationTimestamp(token);
+
+      if (expirationTimestamp === null) {
+        throw new Error("Failed to read Google ID token expiration.");
+      }
+
+      this.token = token;
+      this.expirationTimestamp = expirationTimestamp;
+    } catch (error) {
+      this.token = "";
+      this.expirationTimestamp = 0;
+      throw error;
+    }
+  }
+
+  private hasUsableCachedToken(): boolean {
     if (this.token === "") {
       return false;
     }
 
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    const bufferInSeconds = 30;
 
-    return this.expirationTimestamp > currentTimeInSeconds + bufferInSeconds;
+    return this.expirationTimestamp > currentTimeInSeconds + TOKEN_EXPIRATION_BUFFER_SECONDS;
   }
 }

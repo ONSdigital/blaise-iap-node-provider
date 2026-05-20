@@ -15,12 +15,10 @@ vi.mock("google-auth-library", () => {
   };
 });
 
-import { getGoogleAuthToken } from "./googleTokenProvider.js";
+import { fetchGoogleIdToken } from "./googleTokenProvider.js";
 
-describe("googleTokenProvider", () => {
+describe("fetchGoogleIdToken", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-
     mockGetIdTokenClient.mockResolvedValue({
       idTokenProvider: {
         fetchIdToken: mockFetchIdToken,
@@ -38,46 +36,36 @@ describe("googleTokenProvider", () => {
 
     mockFetchIdToken.mockResolvedValueOnce(expectedToken);
 
-    const result = await getGoogleAuthToken(targetAudience);
+    const result = await fetchGoogleIdToken(targetAudience);
 
     expect(result).toBe(expectedToken);
     expect(mockGetIdTokenClient).toHaveBeenCalledWith(targetAudience);
     expect(mockFetchIdToken).toHaveBeenCalledWith(targetAudience);
   });
 
-  it("throws an error and logs it when GoogleAuth fails", async () => {
+  it("wraps upstream errors without logging from the library", async () => {
     const errorMessage = "Invalid target audience";
     const targetAudience = "test-audience";
 
     mockGetIdTokenClient.mockRejectedValueOnce(new Error(errorMessage));
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(fetchGoogleIdToken(targetAudience)).rejects.toMatchObject({
+      cause: expect.objectContaining({ message: errorMessage }),
+      message: "Failed to fetch Google ID token.",
+    });
 
-    await expect(getGoogleAuthToken(targetAudience)).rejects.toThrow(
-      `Failed to fetch Google Auth Token: ${errorMessage}`,
-    );
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Could not get the Google auth token credentials:",
-      errorMessage,
-    );
+    expect(mockFetchIdToken).not.toHaveBeenCalled();
   });
 
-  it("throws an error and logs it when GoogleAuth fails with a non-Error object", async () => {
+  it("preserves non-Error rejections as the error cause", async () => {
     const nonErrorRejection = "Raw string rejection from Google";
     const targetAudience = "test-audience";
 
     mockGetIdTokenClient.mockRejectedValueOnce(nonErrorRejection);
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    await expect(getGoogleAuthToken(targetAudience)).rejects.toThrow(
-      `Failed to fetch Google Auth Token: ${nonErrorRejection}`,
-    );
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Could not get the Google auth token credentials:",
-      nonErrorRejection,
-    );
+    await expect(fetchGoogleIdToken(targetAudience)).rejects.toMatchObject({
+      cause: nonErrorRejection,
+      message: "Failed to fetch Google ID token.",
+    });
   });
 });

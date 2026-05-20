@@ -3,6 +3,7 @@
     "noEmit": true,
     "types": ["vitest/globals", "node"]
   },
+  "exclude": ["coverage", "dist", "node_modules"],
   "extends": "./tsconfig.json",
-  "include": ["src", "*.config.ts"]
+  "include": ["src/**/*.test.ts"]
 }
