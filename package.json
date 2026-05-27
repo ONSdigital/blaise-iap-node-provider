@@ -25,7 +25,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "yarn tsc -p tsconfig.build.json && yarn publint --pack npm",
-    "lint": "yarn typecheck && yarn eslint . && yarn prettier --check . && yarn knip",
+    "lint": "yarn typecheck && yarn eslint . --max-warnings 0 && yarn prettier --check . && yarn knip",
     "lint-fix": "yarn eslint . --fix && yarn prettier --write . && yarn knip --fix",
     "prepack": "yarn build",
     "spellcheck": "yarn cspell \"**/*.{ts,tsx,json,jsonc,yml,yaml,md}\" --no-progress --no-summary",
